@@ -36,10 +36,6 @@
             - add feeds to array
             - sort array by date
 
-            // "https://andrewkelley.me/rss.xml",
-            // "https://jvns.ca/atom.xml",
-            // "https://css-tricks.com/archives/feed/",
-            // "https://xeiaso.net/blog/feed.xml",
             // "https://nullprogram.com/index.rss",
             // "https://eli.thegreenplace.net/feeds/all.atom.xml",
             // "https://blog.m-ou.se/feed.xml",
@@ -67,40 +63,41 @@
 
         $feed_items = array();
 
-        $url = "https://andrewkelley.me/rss.xml";
-        $rss = Feed::loadRss($url);
-        $blog = htmlspecialchars($rss->title);
+        $rss_urls = array(
+            "https://andrewkelley.me/rss.xml",
+            "https://xeiaso.net/blog.rss",
+        );
 
-        $count = 0;
-        foreach ($rss->item as $item) {
+        foreach ($rss_urls as $url) {
+            $rss = Feed::loadRss($url);
+            $blog = htmlspecialchars($rss->title);
 
-            $title = htmlspecialchars($item->title);
-            $link = htmlspecialchars($item->link);
-            $date = date('D M j Y', (int) $item->timestamp);
+            $count = 0;
+            foreach ($rss->item as $item) {
 
-            array_push($feed_items, array(
-                'blog' => $blog,
-                'title' => $title,
-                'link' => $link,
-                'date' => $date
-            ));
+                $title = htmlspecialchars($item->title);
+                $link = htmlspecialchars($item->link);
+                $date = date('D M j Y', (int) $item->timestamp);
 
-            // if (isset($item->{'content:encoded'})) {
-            //     $html .= "<div class='item-content'>$item->{'content:encoded'}</div>";
-            // } else {
-            //     $html .= "<p class='item-description'>$item->description</p>";
-            // }
+                array_push($feed_items, array(
+                    'blog' => $blog,
+                    'title' => $title,
+                    'link' => $link,
+                    'date' => $date
+                ));
 
-            $count++;
-            if ($count >= $ARTICLES_PER_FEED) {
-                break;
+                $count++;
+                if ($count >= $ARTICLES_PER_FEED) {
+                    break;
+                }
+
             }
-
         }
 
         $atom_urls = array(
             "https://jvns.ca/atom.xml",
-            "https://xkcd.com/atom.xml"
+            "https://xkcd.com/atom.xml",
+            // "https://css-tricks.com/feed/" TODO: broken?
         );
 
         // loop through atom feeds
