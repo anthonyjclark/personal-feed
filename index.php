@@ -11,24 +11,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
 
     <style>
-        /* .channel-title {
-            font-size: 18pt;
-            border-bottom: 1px solid black;
+        .feed-item h4 {
+            margin-top: 0.5rem;
         }
-
-        .channel-description {
-            font-size: 12pt;
-            margin-bottom: 1em;
+        .feed-item h4, .feed-item p {
+            margin-bottom: 0;
         }
-
-        .item-title {
-            font-size: 15pt;
-        }
-
-        .item-timestamp {
-            font-size: 10pt;
-            margin-bottom: 1em;
-        } */
     </style>
 
 </head>
@@ -74,15 +62,14 @@
         <?php
         include_once("Feed.php");
 
+        $ARTICLES_PER_FEED = 10;
+        $ARTICLES_TO_DISPLAY = 20;
+
+        $feed_items = array();
+
         $url = "https://andrewkelley.me/rss.xml";
         $rss = Feed::loadRss($url);
-
-        $title = htmlspecialchars($rss->title);
-        $description = htmlspecialchars($rss->description);
-
-        $html = '';
-        $html .= "<h1 class='channel-title'><a href='$rss->link'>$title</a></h1>\n";
-        $html .= "<p class='channel-description'><i>$rss->description</i></p>\n";
+        $blog = htmlspecialchars($rss->title);
 
         $count = 0;
         foreach ($rss->item as $item) {
@@ -91,55 +78,78 @@
             $link = htmlspecialchars($item->link);
             $date = date('D M j Y', (int) $item->timestamp);
 
-            $html .= "<h2 class='item-title'><a href='$link'>$title</a></h2>\n";
-            $html .= "<p class='item-timestamp'>$date</p>\n";
-            // $html .= "<p class='item-description'>$item->description</p>";
-            // $html .= "<p class='item-content'>$item->{'content:encoded'}</p>";
-        
-            // echo 'Title: ', $item->title;
-            // echo 'Link: ', $item->url;
-            // echo 'Timestamp: ', $item->timestamp;
-            // echo 'Description ', $item->description;
-            // echo 'HTML encoded content: ', $item->{'content:encoded'};
-        
+            array_push($feed_items, array(
+                'blog' => $blog,
+                'title' => $title,
+                'link' => $link,
+                'date' => $date
+            ));
+
             // if (isset($item->{'content:encoded'})) {
             //     $html .= "<div class='item-content'>$item->{'content:encoded'}</div>";
             // } else {
             //     $html .= "<p class='item-description'>$item->description</p>";
             // }
-        
 
             $count++;
-
-            if ($count >= 5) {
+            if ($count >= $ARTICLES_PER_FEED) {
                 break;
+            }
+
+        }
+
+        $atom_urls = array(
+            "https://jvns.ca/atom.xml",
+            "https://xkcd.com/atom.xml"
+        );
+
+        // loop through atom feeds
+        foreach ($atom_urls as $url) {
+            $atom = Feed::loadAtom($url);
+            $blog = htmlspecialchars($atom->title);
+
+            $count = 0;
+            foreach ($atom->entry as $entry) {
+
+                $title = htmlspecialchars($entry->title);
+                $link = htmlspecialchars($entry->link['href']);
+                $date = date('D M j Y', (int) $entry->timestamp);
+
+                // TODO: show/hide xkcd hover text
+
+                array_push($feed_items, array(
+                    'blog' => $blog,
+                    'title' => $title,
+                    'link' => $link,
+                    'date' => $date
+                ));
+
+                $count++;
+                if ($count >= $ARTICLES_PER_FEED) {
+                    break;
+                }
+
             }
         }
 
-        $url = "https://jvns.ca/atom.xml";
-        $atom = Feed::loadAtom($url);
+        // Sort feed items by date
+        usort($feed_items, function ($a, $b) {
+            return strtotime($b['date']) - strtotime($a['date']);
+        });
 
-        $title = htmlspecialchars($atom->title);
-        $description = htmlspecialchars($atom->description);
-
-        $html .= "<h1 class='channel-title'><a href='$atom->link'>$title</a></h1>\n";
-        $html .= "<p class='channel-description'><i>$atom->description</i></p>\n";
-
+        $html = '';
         $count = 0;
-        foreach ($atom->entry as $entry) {
+        foreach ($feed_items as $item) {
+            $html .= "<div class='feed-item'>\n";
+            $html .= "  <h4><a href='$item[link]'>$item[title]</a></h4>\n";
+            $html .= "  <p>$item[date]</p>\n";
+            $html .= "  <p>$item[blog]</p>\n";
+            $html .= "</div>\n";
 
-            $title = htmlspecialchars($entry->title);
-            $link = htmlspecialchars($entry->link['href']);
-            $date = date('D M j Y', (int) $entry->timestamp);
-
-            $html .= "<h2 class='item-title'><a href='$link'>$title</a></h2>\n";
-            $html .= "<p class='item-timestamp'>$date</p>\n";
-
-            $count++;
-
-            if ($count >= 5) {
+            if ($count >= $ARTICLES_TO_DISPLAY) {
                 break;
             }
+
         }
 
         echo $html;
@@ -148,14 +158,7 @@
 
         <script>
 
-
-
-
-
-
-
     </main >
 </body >
 
 </html >
-        
