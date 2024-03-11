@@ -20,10 +20,37 @@
             margin-bottom: 0;
         }
 
-        #loading_spinner {
-            display: none;
+        .lds-dual-ring {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+        }
+
+        .lds-dual-ring:after {
+            content: " ";
+            display: block;
+            width: 64px;
+            height: 64px;
+            margin: 8px;
+            border-radius: 50%;
+            border: 6px solid #fff;
+            border-color: #fff transparent #fff transparent;
+            animation: lds-dual-ring 1.2s linear infinite;
+        }
+
+        @keyframes lds-dual-ring {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
     </style>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 
 </head>
 
@@ -32,25 +59,21 @@
 
         <h1>Personal Feed</h1>
 
-        <img id="loading_spinner" src="loading-spinner.gif">
+        <div id="loading-icon" class="lds-dual-ring"></div>
 
-        <div class="my_update_panel"></div>
+        <div id="feed-list"></div>
 
     </main>
 
     <script>
-        var post_data = "my_variable=" + my_variable;
         $.ajax( {
-            url: 'ajax/my_php_page.php',
+            url: 'index.php',
             type: 'POST',
-            data: post_data,
             dataType: 'html',
             success: function ( data )
             {
-                $( '.my_update_panel' ).html( data );
-                //Moved the hide event so it waits to run until the prior event completes
-                //It hide the spinner immediately, without waiting, until I moved it here
-                $( '#loading_spinner' ).hide();
+                $( '#feed-list' ).html( data );
+                $( '#loading-icon' ).hide();
             },
             error: function ()
             {
