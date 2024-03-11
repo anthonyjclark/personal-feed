@@ -1,33 +1,19 @@
-<!--
-    Libraries:
-    - using: https://github.com/dg/rss-php
-    - https://github.com/simplepie/simplepie
-    - https://github.com/RSS-Bridge/rss-bridge
-    - https://github.com/FreshRSS/FreshRSS
-
-    TODO:
-    - add more feeds
-    - add feeds to array
-    - sort array by date
-
-    // "https://nullprogram.com/index.rss",
-    // "https://eli.thegreenplace.net/feeds/all.atom.xml",
-    // "https://blog.m-ou.se/feed.xml",
-    // "https://raphlinus.github.io/feed.xml",
-    // "https://jalammar.github.io/feed.xml",
-    // "https://growtika.com/blog/feed.xml",
-    // "https://www.righto.com/feeds/posts/default",
-    // "https://www.gingerbill.org/article/feed.xml",
-    // "https://fasterthanli.me/articles/feed.xml",
-    // "https://briancallahan.net/blog/feed.xml",
-    // "https://ciechanow.ski/feed.xml",
-    // "https://www.yet-another-blog.com/feed.xml",
-    // "https://engineeringmedia.com/blog-index.xml"
-    // xkcd
-
-    -->
-
 <?php
+
+// "https://nullprogram.com/index.rss",
+// "https://eli.thegreenplace.net/feeds/all.atom.xml",
+// "https://blog.m-ou.se/feed.xml",
+// "https://raphlinus.github.io/feed.xml",
+// "https://jalammar.github.io/feed.xml",
+// "https://growtika.com/blog/feed.xml",
+// "https://www.righto.com/feeds/posts/default",
+// "https://www.gingerbill.org/article/feed.xml",
+// "https://fasterthanli.me/articles/feed.xml",
+// "https://briancallahan.net/blog/feed.xml",
+// "https://ciechanow.ski/feed.xml",
+// "https://www.yet-another-blog.com/feed.xml",
+// "https://engineeringmedia.com/blog-index.xml"
+
 include_once("Feed.php");
 
 $ARTICLES_PER_FEED = 10;
@@ -41,10 +27,12 @@ $rss_urls = array(
 );
 
 foreach ($rss_urls as $url) {
+
     $rss = Feed::loadRss($url);
     $blog = htmlspecialchars($rss->title);
 
     $count = 0;
+
     foreach ($rss->item as $item) {
 
         $title = htmlspecialchars($item->title);
@@ -72,12 +60,13 @@ $atom_urls = array(
     // "https://css-tricks.com/feed/" TODO: broken?
 );
 
-// loop through atom feeds
 foreach ($atom_urls as $url) {
+
     $atom = Feed::loadAtom($url);
     $blog = htmlspecialchars($atom->title);
 
     $count = 0;
+
     foreach ($atom->entry as $entry) {
 
         $title = htmlspecialchars($entry->title);
@@ -101,14 +90,16 @@ foreach ($atom_urls as $url) {
     }
 }
 
-// Sort feed items by date
 usort($feed_items, function ($a, $b) {
     return strtotime($b['date']) - strtotime($a['date']);
 });
 
 $html = '';
+
 $count = 0;
+
 foreach ($feed_items as $item) {
+
     $html .= "<div class='feed-item'>\n";
     $html .= "  <h4><a href='$item[link]'>$item[title]</a></h4>\n";
     $html .= "  <p>$item[date]</p>\n";
