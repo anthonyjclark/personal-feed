@@ -1,161 +1,126 @@
-<!DOCTYPE html>
-<html lang="en">
+<!--
+    Libraries:
+    - using: https://github.com/dg/rss-php
+    - https://github.com/simplepie/simplepie
+    - https://github.com/RSS-Bridge/rss-bridge
+    - https://github.com/FreshRSS/FreshRSS
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="light dark" />
+    TODO:
+    - add more feeds
+    - add feeds to array
+    - sort array by date
 
-    <title>Personal Feed</title>
+    // "https://nullprogram.com/index.rss",
+    // "https://eli.thegreenplace.net/feeds/all.atom.xml",
+    // "https://blog.m-ou.se/feed.xml",
+    // "https://raphlinus.github.io/feed.xml",
+    // "https://jalammar.github.io/feed.xml",
+    // "https://growtika.com/blog/feed.xml",
+    // "https://www.righto.com/feeds/posts/default",
+    // "https://www.gingerbill.org/article/feed.xml",
+    // "https://fasterthanli.me/articles/feed.xml",
+    // "https://briancallahan.net/blog/feed.xml",
+    // "https://ciechanow.ski/feed.xml",
+    // "https://www.yet-another-blog.com/feed.xml",
+    // "https://engineeringmedia.com/blog-index.xml"
+    // xkcd
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+    -->
 
-    <style>
-        .feed-item h4 {
-            margin-top: 0.5rem;
-        }
-        .feed-item h4, .feed-item p {
-            margin-bottom: 0;
-        }
-    </style>
+<?php
+include_once("Feed.php");
 
-</head>
+$ARTICLES_PER_FEED = 10;
+$ARTICLES_TO_DISPLAY = 20;
 
-<body>
-    <main class="container">
+$feed_items = array();
 
-        <!--
-            Libraries:
-            - using: https://github.com/dg/rss-php
-            - https://github.com/simplepie/simplepie
-            - https://github.com/RSS-Bridge/rss-bridge
-            - https://github.com/FreshRSS/FreshRSS
+$rss_urls = array(
+    "https://andrewkelley.me/rss.xml",
+    "https://xeiaso.net/blog.rss",
+);
 
-            TODO:
-            - add more feeds
-            - add feeds to array
-            - sort array by date
+foreach ($rss_urls as $url) {
+    $rss = Feed::loadRss($url);
+    $blog = htmlspecialchars($rss->title);
 
-            // "https://nullprogram.com/index.rss",
-            // "https://eli.thegreenplace.net/feeds/all.atom.xml",
-            // "https://blog.m-ou.se/feed.xml",
-            // "https://raphlinus.github.io/feed.xml",
-            // "https://jalammar.github.io/feed.xml",
-            // "https://growtika.com/blog/feed.xml",
-            // "https://www.righto.com/feeds/posts/default",
-            // "https://www.gingerbill.org/article/feed.xml",
-            // "https://fasterthanli.me/articles/feed.xml",
-            // "https://briancallahan.net/blog/feed.xml",
-            // "https://ciechanow.ski/feed.xml",
-            // "https://www.yet-another-blog.com/feed.xml",
-            // "https://engineeringmedia.com/blog-index.xml"
-            // xkcd
+    $count = 0;
+    foreach ($rss->item as $item) {
 
-         -->
+        $title = htmlspecialchars($item->title);
+        $link = htmlspecialchars($item->link);
+        $date = date('D M j Y', (int) $item->timestamp);
 
-        <h1>Personal Feed</h1>
+        array_push($feed_items, array(
+            'blog' => $blog,
+            'title' => $title,
+            'link' => $link,
+            'date' => $date
+        ));
 
-        <?php
-        include_once("Feed.php");
-
-        $ARTICLES_PER_FEED = 10;
-        $ARTICLES_TO_DISPLAY = 20;
-
-        $feed_items = array();
-
-        $rss_urls = array(
-            "https://andrewkelley.me/rss.xml",
-            "https://xeiaso.net/blog.rss",
-        );
-
-        foreach ($rss_urls as $url) {
-            $rss = Feed::loadRss($url);
-            $blog = htmlspecialchars($rss->title);
-
-            $count = 0;
-            foreach ($rss->item as $item) {
-
-                $title = htmlspecialchars($item->title);
-                $link = htmlspecialchars($item->link);
-                $date = date('D M j Y', (int) $item->timestamp);
-
-                array_push($feed_items, array(
-                    'blog' => $blog,
-                    'title' => $title,
-                    'link' => $link,
-                    'date' => $date
-                ));
-
-                $count++;
-                if ($count >= $ARTICLES_PER_FEED) {
-                    break;
-                }
-
-            }
+        $count++;
+        if ($count >= $ARTICLES_PER_FEED) {
+            break;
         }
 
-        $atom_urls = array(
-            "https://jvns.ca/atom.xml",
-            "https://xkcd.com/atom.xml",
-            // "https://css-tricks.com/feed/" TODO: broken?
-        );
+    }
+}
 
-        // loop through atom feeds
-        foreach ($atom_urls as $url) {
-            $atom = Feed::loadAtom($url);
-            $blog = htmlspecialchars($atom->title);
+$atom_urls = array(
+    "https://jvns.ca/atom.xml",
+    "https://xkcd.com/atom.xml",
+    // "https://css-tricks.com/feed/" TODO: broken?
+);
 
-            $count = 0;
-            foreach ($atom->entry as $entry) {
+// loop through atom feeds
+foreach ($atom_urls as $url) {
+    $atom = Feed::loadAtom($url);
+    $blog = htmlspecialchars($atom->title);
 
-                $title = htmlspecialchars($entry->title);
-                $link = htmlspecialchars($entry->link['href']);
-                $date = date('D M j Y', (int) $entry->timestamp);
+    $count = 0;
+    foreach ($atom->entry as $entry) {
 
-                // TODO: show/hide xkcd hover text
+        $title = htmlspecialchars($entry->title);
+        $link = htmlspecialchars($entry->link['href']);
+        $date = date('D M j Y', (int) $entry->timestamp);
 
-                array_push($feed_items, array(
-                    'blog' => $blog,
-                    'title' => $title,
-                    'link' => $link,
-                    'date' => $date
-                ));
+        // TODO: show/hide xkcd hover text
 
-                $count++;
-                if ($count >= $ARTICLES_PER_FEED) {
-                    break;
-                }
+        array_push($feed_items, array(
+            'blog' => $blog,
+            'title' => $title,
+            'link' => $link,
+            'date' => $date
+        ));
 
-            }
+        $count++;
+        if ($count >= $ARTICLES_PER_FEED) {
+            break;
         }
 
-        // Sort feed items by date
-        usort($feed_items, function ($a, $b) {
-            return strtotime($b['date']) - strtotime($a['date']);
-        });
+    }
+}
 
-        $html = '';
-        $count = 0;
-        foreach ($feed_items as $item) {
-            $html .= "<div class='feed-item'>\n";
-            $html .= "  <h4><a href='$item[link]'>$item[title]</a></h4>\n";
-            $html .= "  <p>$item[date]</p>\n";
-            $html .= "  <p>$item[blog]</p>\n";
-            $html .= "</div>\n";
+// Sort feed items by date
+usort($feed_items, function ($a, $b) {
+    return strtotime($b['date']) - strtotime($a['date']);
+});
 
-            if ($count >= $ARTICLES_TO_DISPLAY) {
-                break;
-            }
+$html = '';
+$count = 0;
+foreach ($feed_items as $item) {
+    $html .= "<div class='feed-item'>\n";
+    $html .= "  <h4><a href='$item[link]'>$item[title]</a></h4>\n";
+    $html .= "  <p>$item[date]</p>\n";
+    $html .= "  <p>$item[blog]</p>\n";
+    $html .= "</div>\n";
 
-        }
+    if ($count >= $ARTICLES_TO_DISPLAY) {
+        break;
+    }
 
-        echo $html;
+}
 
-        ?>
+echo $html;
 
-        <script>
-
-    </main >
-</body >
-
-</html >
+?>

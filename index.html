@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark" />
+
+    <title>Personal Feed</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+
+    <style>
+        .feed-item h4 {
+            margin-top: 0.5rem;
+        }
+
+        .feed-item h4,
+        .feed-item p {
+            margin-bottom: 0;
+        }
+
+        #loading_spinner {
+            display: none;
+        }
+    </style>
+
+</head>
+
+<body>
+    <main class="container">
+
+        <h1>Personal Feed</h1>
+
+        <img id="loading_spinner" src="loading-spinner.gif">
+
+        <div class="my_update_panel"></div>
+
+    </main>
+
+    <script>
+        var post_data = "my_variable=" + my_variable;
+        $.ajax( {
+            url: 'ajax/my_php_page.php',
+            type: 'POST',
+            data: post_data,
+            dataType: 'html',
+            success: function ( data )
+            {
+                $( '.my_update_panel' ).html( data );
+                //Moved the hide event so it waits to run until the prior event completes
+                //It hide the spinner immediately, without waiting, until I moved it here
+                $( '#loading_spinner' ).hide();
+            },
+            error: function ()
+            {
+                alert( "Something went wrong!" );
+            }
+        } );
+    </script>
+</body>
+
+</html>
