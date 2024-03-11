@@ -10,7 +10,7 @@
 include_once("Feed.php");
 
 $ARTICLES_PER_FEED = 10;
-$ARTICLES_TO_DISPLAY = 100;
+$ARTICLES_TO_DISPLAY = 20;
 
 $feed_items = array();
 
