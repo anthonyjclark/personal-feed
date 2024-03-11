@@ -7,4 +7,5 @@ Currently using file upload, but I should set SSH keys.
 
 ## Credits
 
-- Loading icon from: [Pure CSS Loader - Optimized Spinners for Web · Loading.io](https://loading.io/css/)
+- [RSS & Atom Feeds for PHP](https://github.com/dg/rss-php)
+- [Pure CSS Loader - Optimized Spinners for Web · Loading.io](https://loading.io/css/)
