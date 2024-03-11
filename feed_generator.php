@@ -1,29 +1,26 @@
 <?php
 
-// "https://nullprogram.com/index.rss",
-// "https://eli.thegreenplace.net/feeds/all.atom.xml",
+// TODO: no feed?
 // "https://blog.m-ou.se/feed.xml",
-// "https://raphlinus.github.io/feed.xml",
-// "https://jalammar.github.io/feed.xml",
-// "https://growtika.com/blog/feed.xml",
 // "https://www.righto.com/feeds/posts/default",
-// "https://www.gingerbill.org/article/feed.xml",
-// "https://fasterthanli.me/articles/feed.xml",
-// "https://briancallahan.net/blog/feed.xml",
-// "https://ciechanow.ski/feed.xml",
-// "https://www.yet-another-blog.com/feed.xml",
 // "https://engineeringmedia.com/blog-index.xml"
+
+// TODO: add error handling for no feed or changed feed
 
 include_once("Feed.php");
 
 $ARTICLES_PER_FEED = 10;
-$ARTICLES_TO_DISPLAY = 20;
+$ARTICLES_TO_DISPLAY = 100;
 
 $feed_items = array();
 
 $rss_urls = array(
     "https://andrewkelley.me/rss.xml",
     "https://xeiaso.net/blog.rss",
+    "https://www.gingerbill.org/article/index.xml",
+    // "https://fasterthanli.me/index.xml", TODO: broken?
+    // "https://briancallahan.net/blog/feed.xml", TODO: broken?
+    "https://www.yet-another-blog.com/index.xml"
 );
 
 foreach ($rss_urls as $url) {
@@ -58,6 +55,11 @@ $atom_urls = array(
     "https://jvns.ca/atom.xml",
     "https://xkcd.com/atom.xml",
     // "https://css-tricks.com/feed/" TODO: broken?
+    "https://nullprogram.com/feed/",
+    "https://eli.thegreenplace.net/feeds/all.atom.xml",
+    "https://raphlinus.github.io/feed.xml",
+    "https://jalammar.github.io/feed.xml",
+    "https://ciechanow.ski/atom.xml"
 );
 
 foreach ($atom_urls as $url) {
@@ -106,6 +108,7 @@ foreach ($feed_items as $item) {
     $html .= "  <p>$item[blog]</p>\n";
     $html .= "</div>\n";
 
+    $count++;
     if ($count >= $ARTICLES_TO_DISPLAY) {
         break;
     }
