@@ -47,6 +47,20 @@
                 transform: rotate(360deg);
             }
         }
+
+        @media (prefers-color-scheme: light) {
+            .lds-dual-ring:after {
+                border: 6px solid #2D3138;
+                border-color: #2D3138 transparent #2D3138 transparent;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .lds-dual-ring:after {
+                border: 6px solid #fff;
+                border-color: #fff transparent #fff transparent;
+            }
+        }
     </style>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
