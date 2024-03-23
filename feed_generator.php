@@ -59,7 +59,9 @@ $atom_urls = array(
     "https://eli.thegreenplace.net/feeds/all.atom.xml",
     "https://raphlinus.github.io/feed.xml",
     "https://jalammar.github.io/feed.xml",
-    "https://ciechanow.ski/atom.xml"
+    "https://ciechanow.ski/atom.xml",
+    "https://matklad.github.io/feed.xml",
+    "http://wingolog.org/feed/atom"
 );
 
 foreach ($atom_urls as $url) {
@@ -74,8 +76,6 @@ foreach ($atom_urls as $url) {
         $title = htmlspecialchars($entry->title);
         $link = htmlspecialchars($entry->link['href']);
         $date = date('D M j Y', (int) $entry->timestamp);
-
-        // TODO: show/hide xkcd hover text
 
         array_push($feed_items, array(
             'blog' => $blog,
