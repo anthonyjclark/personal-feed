@@ -19,48 +19,6 @@
         .feed-item p {
             margin-bottom: 0;
         }
-
-        .lds-dual-ring {
-            display: inline-block;
-            width: 80px;
-            height: 80px;
-        }
-
-        .lds-dual-ring:after {
-            content: " ";
-            display: block;
-            width: 64px;
-            height: 64px;
-            margin: 8px;
-            border-radius: 50%;
-            border: 6px solid #fff;
-            border-color: #fff transparent #fff transparent;
-            animation: lds-dual-ring 1.2s linear infinite;
-        }
-
-        @keyframes lds-dual-ring {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        @media (prefers-color-scheme: light) {
-            .lds-dual-ring:after {
-                border: 6px solid #2D3138;
-                border-color: #2D3138 transparent #2D3138 transparent;
-            }
-        }
-
-        @media (prefers-color-scheme: dark) {
-            .lds-dual-ring:after {
-                border: 6px solid #fff;
-                border-color: #fff transparent #fff transparent;
-            }
-        }
     </style>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
@@ -73,13 +31,28 @@
 
         <h1>Personal Feed</h1>
 
-        <div id="loading-icon" class="lds-dual-ring"></div>
+        <span id="loading-icon" aria-busy="true"></span>
 
         <div id="feed-list"></div>
 
     </main>
 
     <script>
+
+        const isMobile = window.matchMedia("only screen and (max-width: 760px)").matches;
+
+        function postProces() {
+
+            // Change to mobile url for xkcd if useful
+            if (isMobile)
+            {
+                $('a[href^="https://xkcd.com"]').each( function() {
+                    this.href = this.href.replace("//xkcd", "//m.xkcd")
+                });
+            }
+
+        }
+
         $.ajax( {
             url: 'feed_generator.php',
             type: 'POST',
@@ -88,12 +61,15 @@
             {
                 $( '#feed-list' ).html( data );
                 $( '#loading-icon' ).hide();
+
+                postProces();
             },
             error: function ()
             {
                 alert( "Something went wrong!" );
             }
         } );
+
     </script>
 </body>
 
