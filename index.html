@@ -33,36 +33,40 @@
 
         <span id="loading-icon" aria-busy="true"></span>
 
+        <ul id="error-list"></ul>
+
         <div id="feed-list"></div>
 
     </main>
 
     <script>
 
-        const isMobile = window.matchMedia("only screen and (max-width: 760px)").matches;
+        const isMobile = window.matchMedia( "only screen and (max-width: 760px)" ).matches;
 
-        function postProces() {
+        function postProcess()
+        {
 
             // Change to mobile url for xkcd if useful
-            if (isMobile)
-            {
-                $('a[href^="https://xkcd.com"]').each( function() {
-                    this.href = this.href.replace("//xkcd", "//m.xkcd")
-                });
+            if ( isMobile ) {
+                $( 'a[href^="https://xkcd.com"]' ).each( function ()
+                {
+                    this.href = this.href.replace( "//xkcd", "//m.xkcd" )
+                } );
             }
 
         }
 
         $.ajax( {
             url: 'feed_generator.php',
-            type: 'POST',
-            dataType: 'html',
+            type: 'post',
+            dataType: 'json',
             success: function ( data )
             {
-                $( '#feed-list' ).html( data );
+                $( '#feed-list' ).html( data[ 'feed_html' ] );
+                $( '#error-list' ).html( data[ 'error_html' ] );
                 $( '#loading-icon' ).hide();
 
-                postProces();
+                postProcess();
             },
             error: function ()
             {
