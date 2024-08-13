@@ -4,8 +4,7 @@
 // "https://blog.m-ou.se/feed.xml",
 // "https://www.righto.com/feeds/posts/default",
 // "https://engineeringmedia.com/blog-index.xml"
-
-// TODO: add error handling for no feed or changed feed
+// https://axleos.com/blog/
 
 include_once("Feed.php");
 
@@ -20,9 +19,29 @@ $rss_urls = array(
     "https://andrewkelley.me/rss.xml",
     "https://xeiaso.net/blog.rss",
     "https://www.gingerbill.org/article/index.xml",
-    "https://fasterthanli.me/index.xml",
     "https://briancallahan.net/blog/feed.xml",
-    "https://www.yet-another-blog.com/index.xml"
+    "https://www.yet-another-blog.com/index.xml",
+    "https://mitchellh.com/feed.xml",
+    "https://zed.dev/blog.rss",
+    "https://prescheme.org/rss.xml"
+);
+
+$atom_urls = array(
+    "https://fasterthanli.me/index.xml",
+    "https://jvns.ca/atom.xml",
+    "https://xkcd.com/atom.xml",
+    "https://css-tricks.com/feed/",
+    "https://nullprogram.com/feed/",
+    "https://eli.thegreenplace.net/feeds/all.atom.xml",
+    "https://raphlinus.github.io/feed.xml",
+    "https://jalammar.github.io/feed.xml",
+    "https://ciechanow.ski/atom.xml",
+    "https://matklad.github.io/feed.xml",
+    "http://wingolog.org/feed/atom",
+    "https://tonsky.me/atom.xml",
+    "https://jank-lang.org/blog/feed.xml",
+    "https://news.scrapscript.org/rss",
+    "https://acegikmo.substack.com/feed"
 );
 
 foreach ($rss_urls as $url) {
@@ -59,18 +78,6 @@ foreach ($rss_urls as $url) {
     }
 }
 
-$atom_urls = array(
-    "https://jvns.ca/atom.xml",
-    "https://xkcd.com/atom.xml",
-    "https://css-tricks.com/feed/",
-    "https://nullprogram.com/feed/",
-    "https://eli.thegreenplace.net/feeds/all.atom.xml",
-    "https://raphlinus.github.io/feed.xml",
-    "https://jalammar.github.io/feed.xml",
-    "https://ciechanow.ski/atom.xml",
-    "https://matklad.github.io/feed.xml",
-    "http://wingolog.org/feed/atom"
-);
 
 foreach ($atom_urls as $url) {
 

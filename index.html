@@ -32,6 +32,7 @@
         <h1>Personal Feed</h1>
 
         <span id="loading-icon" aria-busy="true"></span>
+        <progress id="progress-bar" value="0" max="100"></progress>
 
         <ul id="error-list"></ul>
 
@@ -41,38 +42,112 @@
 
     <script>
 
-        const isMobile = window.matchMedia( "only screen and (max-width: 760px)" ).matches;
+        const isMobile = window.matchMedia("only screen and (max-width: 760px)").matches;
 
-        function postProcess()
-        {
+        function postProcess() {
 
             // Change to mobile url for xkcd if useful
-            if ( isMobile ) {
-                $( 'a[href^="https://xkcd.com"]' ).each( function ()
-                {
-                    this.href = this.href.replace( "//xkcd", "//m.xkcd" )
-                } );
+            if (isMobile) {
+                $('a[href^="https://xkcd.com"]').each(function () {
+                    this.href = this.href.replace("//xkcd", "//m.xkcd")
+                });
             }
 
         }
 
-        $.ajax( {
-            url: 'feed_generator.php',
-            type: 'post',
-            dataType: 'json',
-            success: function ( data )
-            {
-                $( '#feed-list' ).html( data[ 'feed_html' ] );
-                $( '#error-list' ).html( data[ 'error_html' ] );
-                $( '#loading-icon' ).hide();
+        async function getFeed(feed) {
 
-                postProcess();
-            },
-            error: function ()
-            {
-                alert( "Something went wrong!" );
+
+            const response = await fetch('GetFeed.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json; charset=utf-8' },
+                body: JSON.stringify({ url: feed, type: "rss" }),
+            });
+
+            if (!response.ok) {
+                console.error(`Response status: ${response.status}`);
+                throw new Error(`Response status: ${response.status}`);
             }
-        } );
+
+            const json = await response.json();
+            return json;
+        }
+
+        async function getAllFeeds(feedList) {
+
+            let feedItems = [];
+
+            for (const feed of feedList) {
+
+                const data = await getFeed(feed);
+
+                feedItems = feedItems.concat(data['feed_items']);
+
+                $('#error-list').append(data['error_html']);
+
+            }
+
+            return feedItems;
+        }
+
+        // TODO: make parallel?
+
+        const rssURLs = [
+            "https://andrewkelley.me/rss.xml",
+            "https://www.gingerbill.org/article/index.xml",
+            "https://xeiaso.net/blog.rss",
+            "https://briancallahan.net/blog/feed.xml",
+            "https://www.yet-another-blog.com/index.xml",
+            "https://mitchellh.com/feed.xml",
+            "https://zed.dev/blog.rss",
+            "https://prescheme.org/rss.xml",
+        ];
+
+        getAllFeeds(rssURLs).then(feedItems => {
+
+            feedItems.sort((a, b) => new Date(b['date']) - new Date(a['date']));
+
+            for (const item of feedItems) {
+
+                const html = `
+                <div class="feed-item">
+                    <h4><a href="${item['link']}">${item['title']}</a></h4>
+                    <p>${item['date']}</p>
+                    <p>${item['blog']}</p>
+                </div>`;
+
+                $('#feed-list').append(html);
+
+            }
+
+            $('#loading-icon').hide();
+
+            postProcess();
+
+        });
+
+        const atomURLs = [
+            "https://fasterthanli.me/index.xml",
+            "https://jvns.ca/atom.xml",
+            "https://xkcd.com/atom.xml",
+            "https://css-tricks.com/feed/",
+            "https://nullprogram.com/feed/",
+            "https://eli.thegreenplace.net/feeds/all.atom.xml",
+            "https://raphlinus.github.io/feed.xml",
+            "https://jalammar.github.io/feed.xml",
+            "https://ciechanow.ski/atom.xml",
+            "https://matklad.github.io/feed.xml",
+            "http://wingolog.org/feed/atom",
+            "https://tonsky.me/atom.xml",
+            "https://jank-lang.org/blog/feed.xml",
+            "https://news.scrapscript.org/rss",
+            "https://acegikmo.substack.com/feed"
+        ];
+
+        // TODO:
+        // - atom
+        // - progress bar
+
 
     </script>
 </body>
