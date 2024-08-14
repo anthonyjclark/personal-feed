@@ -78,9 +78,6 @@
 
             for (const feed of feedList) {
 
-                if (feed["type"] !== "rss") {
-                    // continue;
-                }
                 const data = await getFeed(feed["url"], feed["type"]);
 
                 percentComplete += percentPerFeed;
