@@ -9,21 +9,33 @@ if (isset($_POST)) {
     $data = json_decode($body, true);
 
     $url = $data['url'];
+    $type = $data['type'];
 
     $feed_items = array();
     $error_message = "";
 
     try {
 
-        $rss = Feed::loadRss($url);
+        if ($type == 'rss') {
+            $feed = Feed::loadRss($url);
+            $item_list = $feed->item;
+        } else {
+            $feed = Feed::loadAtom($url);
+            $item_list = $feed->entry;
+        }
 
-        $blog = htmlspecialchars($rss->title);
+        $blog = htmlspecialchars($feed->title);
 
-        foreach ($rss->item as $item) {
+        foreach ($item_list as $item) {
 
             $title = htmlspecialchars($item->title);
-            $link = htmlspecialchars($item->link);
             $date = date('D M j Y', (int) $item->timestamp);
+
+            if ($type == 'rss') {
+                $link = htmlspecialchars($item->link);
+            } else {
+                $link = htmlspecialchars($item->link['href']);
+            }
 
             array_push($feed_items, array(
                 'blog' => $blog,

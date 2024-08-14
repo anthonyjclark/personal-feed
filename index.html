@@ -31,7 +31,6 @@
 
         <h1>Personal Feed</h1>
 
-        <span id="loading-icon" aria-busy="true"></span>
         <progress id="progress-bar" value="0" max="100"></progress>
 
         <ul id="error-list"></ul>
@@ -55,13 +54,13 @@
 
         }
 
-        async function getFeed(feed) {
+        async function getFeed(feed, type) {
 
 
             const response = await fetch('GetFeed.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json; charset=utf-8' },
-                body: JSON.stringify({ url: feed, type: "rss" }),
+                body: JSON.stringify({ url: feed, type: type }),
             });
 
             if (!response.ok) {
@@ -79,7 +78,13 @@
 
             for (const feed of feedList) {
 
-                const data = await getFeed(feed);
+                if (feed["type"] !== "rss") {
+                    // continue;
+                }
+                const data = await getFeed(feed["url"], feed["type"]);
+
+                percentComplete += percentPerFeed;
+                progressBar.value = percentComplete;
 
                 feedItems = feedItems.concat(data['feed_items']);
 
@@ -92,18 +97,39 @@
 
         // TODO: make parallel?
 
-        const rssURLs = [
-            "https://andrewkelley.me/rss.xml",
-            "https://www.gingerbill.org/article/index.xml",
-            "https://xeiaso.net/blog.rss",
-            "https://briancallahan.net/blog/feed.xml",
-            "https://www.yet-another-blog.com/index.xml",
-            "https://mitchellh.com/feed.xml",
-            "https://zed.dev/blog.rss",
-            "https://prescheme.org/rss.xml",
+        const feedURLs = [
+            { url: "https://andrewkelley.me/rss.xml", type: "rss" },
+            { url: "https://www.gingerbill.org/article/index.xml", type: "rss" },
+            { url: "https://xeiaso.net/blog.rss", type: "rss" },
+            { url: "https://briancallahan.net/blog/feed.xml", type: "rss" },
+            { url: "https://www.yet-another-blog.com/index.xml", type: "rss" },
+            { url: "https://mitchellh.com/feed.xml", type: "rss" },
+            { url: "https://zed.dev/blog.rss", type: "rss" },
+            { url: "https://prescheme.org/rss.xml", type: "rss" },
+            // "https://urish.org/rss.xml",
+            { url: "https://fasterthanli.me/index.xml", type: "atom" },
+            { url: "https://jvns.ca/atom.xml", type: "atom" },
+            { url: "https://xkcd.com/atom.xml", type: "atom" },
+            { url: "https://css-tricks.com/feed/", type: "atom" },
+            { url: "https://nullprogram.com/feed/", type: "atom" },
+            { url: "https://eli.thegreenplace.net/feeds/all.atom.xml", type: "atom" },
+            { url: "https://raphlinus.github.io/feed.xml", type: "atom" },
+            { url: "https://jalammar.github.io/feed.xml", type: "atom" },
+            { url: "https://ciechanow.ski/atom.xml", type: "atom" },
+            { url: "https://matklad.github.io/feed.xml", type: "atom" },
+            { url: "http://wingolog.org/feed/atom", type: "atom" },
+            { url: "https://tonsky.me/atom.xml", type: "atom" },
+            { url: "https://jank-lang.org/blog/feed.xml", type: "atom" },
+            { url: "https://news.scrapscript.org/rss", type: "atom" },
+            { url: "https://acegikmo.substack.com/feed", type: "atom" },
         ];
 
-        getAllFeeds(rssURLs).then(feedItems => {
+        const percentPerFeed = 100 / feedURLs.length;
+
+        let percentComplete = 0;
+        let progressBar = document.getElementById("progress-bar");
+
+        getAllFeeds(feedURLs).then(feedItems => {
 
             feedItems.sort((a, b) => new Date(b['date']) - new Date(a['date']));
 
@@ -120,29 +146,9 @@
 
             }
 
-            $('#loading-icon').hide();
-
             postProcess();
 
         });
-
-        const atomURLs = [
-            "https://fasterthanli.me/index.xml",
-            "https://jvns.ca/atom.xml",
-            "https://xkcd.com/atom.xml",
-            "https://css-tricks.com/feed/",
-            "https://nullprogram.com/feed/",
-            "https://eli.thegreenplace.net/feeds/all.atom.xml",
-            "https://raphlinus.github.io/feed.xml",
-            "https://jalammar.github.io/feed.xml",
-            "https://ciechanow.ski/atom.xml",
-            "https://matklad.github.io/feed.xml",
-            "http://wingolog.org/feed/atom",
-            "https://tonsky.me/atom.xml",
-            "https://jank-lang.org/blog/feed.xml",
-            "https://news.scrapscript.org/rss",
-            "https://acegikmo.substack.com/feed"
-        ];
 
         // TODO:
         // - atom
