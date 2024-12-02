@@ -1,158 +1,157 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="color-scheme" content="light dark" />
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="light dark" />
+        <title>Personal Feed</title>
 
-    <title>Personal Feed</title>
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+        />
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+        <style>
+            .feed-item h4 {
+                margin-top: 0.5rem;
+            }
 
-    <style>
-        .feed-item h4 {
-            margin-top: 0.5rem;
-        }
+            .feed-item h4,
+            .feed-item p {
+                margin-bottom: 0;
+            }
+        </style>
 
-        .feed-item h4,
-        .feed-item p {
-            margin-bottom: 0;
-        }
-    </style>
+        <script
+            src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"
+        ></script>
+    </head>
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
-        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <body>
+        <main class="container">
+            <h1>Personal Feed</h1>
 
-</head>
+            <progress id="progress-bar" value="0" max="100"></progress>
 
-<body>
-    <main class="container">
+            <ul id="error-list"></ul>
 
-        <h1>Personal Feed</h1>
+            <div id="feed-list"></div>
+        </main>
 
-        <progress id="progress-bar" value="0" max="100"></progress>
+        <script>
+            const isMobile = window.matchMedia("only screen and (max-width: 760px)").matches;
 
-        <ul id="error-list"></ul>
+            function postProcess() {
+                // Change to mobile url for xkcd if useful
+                if (isMobile) {
+                    $('a[href^="https://xkcd.com"]').each(function () {
+                        this.href = this.href.replace("//xkcd", "//m.xkcd");
+                    });
+                }
+            }
 
-        <div id="feed-list"></div>
-
-    </main>
-
-    <script>
-
-        const isMobile = window.matchMedia("only screen and (max-width: 760px)").matches;
-
-        function postProcess() {
-
-            // Change to mobile url for xkcd if useful
-            if (isMobile) {
-                $('a[href^="https://xkcd.com"]').each(function () {
-                    this.href = this.href.replace("//xkcd", "//m.xkcd")
+            async function getFeed(feed, type) {
+                const response = await fetch("GetFeed.php", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json; charset=utf-8" },
+                    body: JSON.stringify({ url: feed, type: type }),
                 });
+
+                if (!response.ok) {
+                    console.error(`Response status: ${response.status}`);
+                    throw new Error(`Response status: ${response.status}`);
+                }
+
+                const json = await response.json();
+                return json;
             }
 
-        }
+            async function getAllFeeds(feedList) {
+                let feedItems = [];
 
-        async function getFeed(feed, type) {
+                for (const feed of feedList) {
+                    const data = await getFeed(feed["url"], feed["type"]);
 
+                    percentComplete += percentPerFeed;
+                    progressBar.value = percentComplete;
 
-            const response = await fetch('GetFeed.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json; charset=utf-8' },
-                body: JSON.stringify({ url: feed, type: type }),
-            });
+                    feedItems = feedItems.concat(data["feed_items"]);
 
-            if (!response.ok) {
-                console.error(`Response status: ${response.status}`);
-                throw new Error(`Response status: ${response.status}`);
+                    $("#error-list").append(data["error_html"]);
+                }
+
+                return feedItems;
             }
 
-            const json = await response.json();
-            return json;
-        }
+            // TODO: make parallel?
 
-        async function getAllFeeds(feedList) {
+            const feedURLs = [
+                { url: "https://andrewkelley.me/rss.xml", type: "rss" },
+                { url: "https://www.gingerbill.org/article/index.xml", type: "rss" },
+                { url: "https://xeiaso.net/blog.rss", type: "rss" },
+                { url: "https://briancallahan.net/blog/feed.xml", type: "rss" },
+                { url: "https://www.yet-another-blog.com/index.xml", type: "rss" },
+                { url: "https://mitchellh.com/feed.xml", type: "rss" },
+                { url: "https://zed.dev/blog.rss", type: "rss" },
+                { url: "https://ziglang.org/news/index.xml", type: "rss" },
+                { url: "https://prescheme.org/rss.xml", type: "rss" },
+                // "https://urish.org/rss.xml",
+                { url: "https://fasterthanli.me/index.xml", type: "atom" },
+                { url: "https://jvns.ca/atom.xml", type: "atom" },
+                { url: "https://xkcd.com/atom.xml", type: "atom" },
+                { url: "https://css-tricks.com/feed/", type: "atom" },
+                { url: "https://nullprogram.com/feed/", type: "atom" },
+                { url: "https://eli.thegreenplace.net/feeds/all.atom.xml", type: "atom" },
+                { url: "https://raphlinus.github.io/feed.xml", type: "atom" },
+                { url: "https://jalammar.github.io/feed.xml", type: "atom" },
+                { url: "https://ciechanow.ski/atom.xml", type: "atom" },
+                { url: "https://matklad.github.io/feed.xml", type: "atom" },
+                { url: "http://wingolog.org/feed/atom", type: "atom" },
+                { url: "https://tonsky.me/atom.xml", type: "atom" },
+                { url: "https://jank-lang.org/blog/feed.xml", type: "atom" },
+                { url: "https://news.scrapscript.org/rss", type: "atom" },
+                { url: "https://acegikmo.substack.com/feed", type: "atom" },
+                { url: "https://izzys.casa/index.xml", type: "atom" },
+                { url: "https://ludic.mataroa.blog/rss/", type: "rss" },
+                { url: "https://injuly.in/rss.xml", type: "rss" },
+                { url: "https://ianthehenry.com/feed.xml", type: "rss" },
+                { url: "https://danielmangum.com/index.xml", type: "atom" },
+                { url: "https://blog.stephenmarz.com/", type: "rss" },
+                { url: "https://interrupt.memfault.com/feed.xml", type: "atom" },
+                {
+                    url: "https://raw.githubusercontent.com/francisrstokes/githublog/main/feed.xml",
+                    type: "rss",
+                },
+            ];
 
-            let feedItems = [];
+            const percentPerFeed = 100 / feedURLs.length;
 
-            for (const feed of feedList) {
+            let percentComplete = 0;
+            let progressBar = document.getElementById("progress-bar");
 
-                const data = await getFeed(feed["url"], feed["type"]);
+            getAllFeeds(feedURLs).then((feedItems) => {
+                feedItems.sort((a, b) => new Date(b["date"]) - new Date(a["date"]));
 
-                percentComplete += percentPerFeed;
-                progressBar.value = percentComplete;
-
-                feedItems = feedItems.concat(data['feed_items']);
-
-                $('#error-list').append(data['error_html']);
-
-            }
-
-            return feedItems;
-        }
-
-        // TODO: make parallel?
-
-        const feedURLs = [
-            { url: "https://andrewkelley.me/rss.xml", type: "rss" },
-            { url: "https://www.gingerbill.org/article/index.xml", type: "rss" },
-            { url: "https://xeiaso.net/blog.rss", type: "rss" },
-            { url: "https://briancallahan.net/blog/feed.xml", type: "rss" },
-            { url: "https://www.yet-another-blog.com/index.xml", type: "rss" },
-            { url: "https://mitchellh.com/feed.xml", type: "rss" },
-            { url: "https://zed.dev/blog.rss", type: "rss" },
-            { url: "https://prescheme.org/rss.xml", type: "rss" },
-            // "https://urish.org/rss.xml",
-            { url: "https://fasterthanli.me/index.xml", type: "atom" },
-            { url: "https://jvns.ca/atom.xml", type: "atom" },
-            { url: "https://xkcd.com/atom.xml", type: "atom" },
-            { url: "https://css-tricks.com/feed/", type: "atom" },
-            { url: "https://nullprogram.com/feed/", type: "atom" },
-            { url: "https://eli.thegreenplace.net/feeds/all.atom.xml", type: "atom" },
-            { url: "https://raphlinus.github.io/feed.xml", type: "atom" },
-            { url: "https://jalammar.github.io/feed.xml", type: "atom" },
-            { url: "https://ciechanow.ski/atom.xml", type: "atom" },
-            { url: "https://matklad.github.io/feed.xml", type: "atom" },
-            { url: "http://wingolog.org/feed/atom", type: "atom" },
-            { url: "https://tonsky.me/atom.xml", type: "atom" },
-            { url: "https://jank-lang.org/blog/feed.xml", type: "atom" },
-            { url: "https://news.scrapscript.org/rss", type: "atom" },
-            { url: "https://acegikmo.substack.com/feed", type: "atom" },
-        ];
-
-        const percentPerFeed = 100 / feedURLs.length;
-
-        let percentComplete = 0;
-        let progressBar = document.getElementById("progress-bar");
-
-        getAllFeeds(feedURLs).then(feedItems => {
-
-            feedItems.sort((a, b) => new Date(b['date']) - new Date(a['date']));
-
-            for (const item of feedItems) {
-
-                const html = `
+                for (const item of feedItems) {
+                    const html = `
                 <div class="feed-item">
-                    <h4><a href="${item['link']}">${item['title']}</a></h4>
-                    <p>${item['date']}</p>
-                    <p>${item['blog']}</p>
+                    <h4><a href="${item["link"]}">${item["title"]}</a></h4>
+                    <p>${item["date"]}</p>
+                    <p>${item["blog"]}</p>
                 </div>`;
 
-                $('#feed-list').append(html);
+                    $("#feed-list").append(html);
+                }
 
-            }
+                postProcess();
+            });
 
-            postProcess();
-
-        });
-
-        // TODO:
-        // - atom
-        // - progress bar
-
-
-    </script>
-</body>
-
+            // TODO:
+            // - atom
+            // - progress bar
+        </script>
+    </body>
 </html>
