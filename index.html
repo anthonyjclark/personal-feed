@@ -1,157 +1,167 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="color-scheme" content="light dark" />
 
-        <title>Personal Feed</title>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
 
-        <link
-            rel="stylesheet"
-            href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
-        />
+    <title>Personal Feed</title>
 
-        <style>
-            .feed-item h4 {
-                margin-top: 0.5rem;
-            }
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
 
-            .feed-item h4,
-            .feed-item p {
-                margin-bottom: 0;
-            }
-        </style>
+    <style>
+        .feed-item h4 {
+            margin-top: 0.5rem;
+        }
 
-        <script
-            src="https://code.jquery.com/jquery-3.7.1.min.js"
-            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
-            crossorigin="anonymous"
-        ></script>
-    </head>
+        .feed-item h4,
+        .feed-item p {
+            margin-bottom: 0;
+        }
+    </style>
 
-    <body>
-        <main class="container">
-            <h1>Personal Feed</h1>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+</head>
 
-            <progress id="progress-bar" value="0" max="100"></progress>
+<body>
+    <main class="container">
+        <h1>Personal Feed</h1>
 
-            <ul id="error-list"></ul>
+        <progress id="progress-bar" value="0" max="100"></progress>
 
-            <div id="feed-list"></div>
-        </main>
+        <ul id="error-list"></ul>
 
-        <script>
-            const isMobile = window.matchMedia("only screen and (max-width: 760px)").matches;
+        <div id="feed-list"></div>
+    </main>
 
-            function postProcess() {
-                // Change to mobile url for xkcd if useful
-                if (isMobile) {
-                    $('a[href^="https://xkcd.com"]').each(function () {
-                        this.href = this.href.replace("//xkcd", "//m.xkcd");
-                    });
-                }
-            }
+    <script>
+        const isMobile = window.matchMedia("only screen and (max-width: 760px)").matches;
 
-            async function getFeed(feed, type) {
-                const response = await fetch("GetFeed.php", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json; charset=utf-8" },
-                    body: JSON.stringify({ url: feed, type: type }),
+        function postProcess() {
+            // Change to mobile url for xkcd
+            if (isMobile) {
+                $('a[href^="https://xkcd.com"]').each(function () {
+                    this.href = this.href.replace("//xkcd", "//m.xkcd");
                 });
+            }
+        }
 
-                if (!response.ok) {
-                    console.error(`Response status: ${response.status}`);
-                    throw new Error(`Response status: ${response.status}`);
-                }
+        async function getFeed(feed, type) {
+            const response = await fetch("GetFeed.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json; charset=utf-8" },
+                body: JSON.stringify({ url: feed, type: type }),
+            });
 
+            if (!response.ok) {
+                console.error(`Response status: ${response.status}`);
+                throw new Error(`Response status: ${response.status}`);
+            }
+
+            try {
                 const json = await response.json();
                 return json;
+            } catch (error) {
+                console.error(error);
+                return undefined;
             }
+        }
+        async function getAllFeeds(feedList) {
+            let feedItems = [];
 
-            async function getAllFeeds(feedList) {
-                let feedItems = [];
+            const feedPromises = feedList.map(async (feed) => {
+                const data = await getFeed(feed["url"], feed["type"]);
 
-                for (const feed of feedList) {
-                    const data = await getFeed(feed["url"], feed["type"]);
+                percentComplete += percentPerFeed;
+                progressBar.value = percentComplete;
 
-                    percentComplete += percentPerFeed;
-                    progressBar.value = percentComplete;
+                if (data === undefined) { return null; }
 
-                    feedItems = feedItems.concat(data["feed_items"]);
+                $("#error-list").append(data["error_html"]);
+                return data["feed_items"];
+            });
 
-                    $("#error-list").append(data["error_html"]);
+            const results = await Promise.all(feedPromises);
+
+            for (const items of results) {
+                if (items !== null) {
+                    feedItems = feedItems.concat(items);
                 }
-
-                return feedItems;
             }
 
-            // TODO: make parallel?
+            return feedItems;
+        }
 
-            const feedURLs = [
-                { url: "https://andrewkelley.me/rss.xml", type: "rss" },
-                { url: "https://www.gingerbill.org/article/index.xml", type: "rss" },
-                { url: "https://xeiaso.net/blog.rss", type: "rss" },
-                { url: "https://briancallahan.net/blog/feed.xml", type: "rss" },
-                { url: "https://www.yet-another-blog.com/index.xml", type: "rss" },
-                { url: "https://mitchellh.com/feed.xml", type: "rss" },
-                { url: "https://zed.dev/blog.rss", type: "rss" },
-                { url: "https://ziglang.org/news/index.xml", type: "rss" },
-                { url: "https://prescheme.org/rss.xml", type: "rss" },
-                // "https://urish.org/rss.xml",
-                { url: "https://fasterthanli.me/index.xml", type: "atom" },
-                { url: "https://jvns.ca/atom.xml", type: "atom" },
-                { url: "https://xkcd.com/atom.xml", type: "atom" },
-                { url: "https://css-tricks.com/feed/", type: "atom" },
-                { url: "https://nullprogram.com/feed/", type: "atom" },
-                { url: "https://eli.thegreenplace.net/feeds/all.atom.xml", type: "atom" },
-                { url: "https://raphlinus.github.io/feed.xml", type: "atom" },
-                { url: "https://jalammar.github.io/feed.xml", type: "atom" },
-                { url: "https://ciechanow.ski/atom.xml", type: "atom" },
-                { url: "https://matklad.github.io/feed.xml", type: "atom" },
-                { url: "http://wingolog.org/feed/atom", type: "atom" },
-                { url: "https://tonsky.me/atom.xml", type: "atom" },
-                { url: "https://jank-lang.org/blog/feed.xml", type: "atom" },
-                { url: "https://news.scrapscript.org/rss", type: "atom" },
-                { url: "https://acegikmo.substack.com/feed", type: "atom" },
-                { url: "https://izzys.casa/index.xml", type: "atom" },
-                { url: "https://ludic.mataroa.blog/rss/", type: "rss" },
-                { url: "https://injuly.in/rss.xml", type: "rss" },
-                { url: "https://ianthehenry.com/feed.xml", type: "rss" },
-                { url: "https://danielmangum.com/index.xml", type: "atom" },
-                { url: "https://blog.stephenmarz.com/", type: "rss" },
-                { url: "https://interrupt.memfault.com/feed.xml", type: "atom" },
-                {
-                    url: "https://raw.githubusercontent.com/francisrstokes/githublog/main/feed.xml",
-                    type: "rss",
-                },
-            ];
+        const feedURLs = [
+            { url: "https://andrewkelley.me/rss.xml", type: "rss" },
+            { url: "https://www.gingerbill.org/article/index.xml", type: "rss" },
+            { url: "https://xeiaso.net/blog.rss", type: "rss" },
+            { url: "https://briancallahan.net/blog/feed.xml", type: "rss" },
+            { url: "https://www.yet-another-blog.com/index.xml", type: "rss" },
+            { url: "https://mitchellh.com/feed.xml", type: "rss" },
+            { url: "https://zed.dev/blog.rss", type: "rss" },
+            { url: "https://ziglang.org/news/index.xml", type: "rss" },
+            { url: "https://prescheme.org/rss.xml", type: "rss" },
+            // "https://urish.org/rss.xml",
+            { url: "https://fasterthanli.me/index.xml", type: "atom" },
+            { url: "https://jvns.ca/atom.xml", type: "atom" },
+            { url: "https://xkcd.com/atom.xml", type: "atom" },
+            { url: "https://css-tricks.com/feed/", type: "atom" },
+            { url: "https://nullprogram.com/feed/", type: "atom" },
+            { url: "https://eli.thegreenplace.net/feeds/all.atom.xml", type: "atom" },
+            { url: "https://raphlinus.github.io/feed.xml", type: "atom" },
+            { url: "https://jalammar.github.io/feed.xml", type: "atom" },
+            { url: "https://ciechanow.ski/atom.xml", type: "atom" },
+            { url: "https://matklad.github.io/feed.xml", type: "atom" },
+            { url: "http://wingolog.org/feed/atom", type: "atom" },
+            { url: "https://tonsky.me/atom.xml", type: "atom" },
+            { url: "https://jank-lang.org/blog/feed.xml", type: "atom" },
+            { url: "https://news.scrapscript.org/rss", type: "atom" },
+            { url: "https://acegikmo.substack.com/feed", type: "atom" },
+            { url: "https://izzys.casa/index.xml", type: "atom" },
+            { url: "https://ludic.mataroa.blog/rss/", type: "rss" },
+            { url: "https://injuly.in/rss.xml", type: "rss" },
+            { url: "https://ianthehenry.com/feed.xml", type: "rss" },
+            { url: "https://danielmangum.com/index.xml", type: "atom" },
+            { url: "https://blog.stephenmarz.com/", type: "rss" },
+            { url: "https://interrupt.memfault.com/feed.xml", type: "atom" },
+            { url: "https://matt.might.net/articles/feed.rss", type: "atom" },
+            {
+                url: "https://raw.githubusercontent.com/francisrstokes/githublog/main/feed.xml",
+                type: "rss",
+            },
+            { url: "www.uiua.org/blog/feed.rss", type: "rss" },
+            // { url: "", type: "" },
+        ];
 
-            const percentPerFeed = 100 / feedURLs.length;
+        const percentPerFeed = 100 / feedURLs.length;
 
-            let percentComplete = 0;
-            let progressBar = document.getElementById("progress-bar");
+        let percentComplete = 0;
+        let progressBar = document.getElementById("progress-bar");
 
-            getAllFeeds(feedURLs).then((feedItems) => {
-                feedItems.sort((a, b) => new Date(b["date"]) - new Date(a["date"]));
+        getAllFeeds(feedURLs).then((feedItems) => {
+            feedItems.sort((a, b) => new Date(b["date"]) - new Date(a["date"]));
 
-                for (const item of feedItems) {
-                    const html = `
+            for (const item of feedItems) {
+                const html = `
                 <div class="feed-item">
                     <h4><a href="${item["link"]}">${item["title"]}</a></h4>
                     <p>${item["date"]}</p>
                     <p>${item["blog"]}</p>
                 </div>`;
 
-                    $("#feed-list").append(html);
-                }
+                $("#feed-list").append(html);
+            }
 
-                postProcess();
-            });
+            postProcess();
+        });
 
-            // TODO:
-            // - atom
-            // - progress bar
-        </script>
-    </body>
+        // TODO:
+        // - atom
+        // - progress bar
+    </script>
+</body>
+
 </html>
